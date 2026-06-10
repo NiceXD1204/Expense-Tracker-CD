@@ -1,5 +1,10 @@
 # Dev environment overrides for charts/db (thin wrapper around the Bitnami postgresql chart).
 postgresql:
+  # Bitnami moved older image tags from docker.io/bitnami to docker.io/bitnamilegacy
+  # in Aug 2025; the chart's default "bitnami/postgresql:17.6.0-debian-12-r4" 404s.
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/postgresql
   auth:
     username: expenses
     password: expenses
