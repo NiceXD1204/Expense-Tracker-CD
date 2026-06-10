@@ -12,6 +12,9 @@ postgresql:
   primary:
     persistence:
       size: 1Gi
+      # EKS does not mark a default StorageClass; the gp2 class created by the
+      # in-tree provisioner exists but is unset as default, so the PVC binds explicitly here.
+      storageClass: gp2
     resources:
       requests:
         cpu: 100m
