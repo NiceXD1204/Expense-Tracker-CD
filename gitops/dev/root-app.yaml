@@ -10,7 +10,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/NiceXD1204/expense-tracker-infra.git
+    repoURL: https://github.com/NiceXD1204/Expense-Tracker-CD.git
     targetRevision: HEAD
     path: gitops/dev
     directory:

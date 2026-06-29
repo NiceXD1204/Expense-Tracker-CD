@@ -6,14 +6,14 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://github.com/NiceXD1204/expense-tracker.git
+    - repoURL: https://github.com/NiceXD1204/Expense-Tracker-CI.git
       targetRevision: HEAD
       path: charts/db
       helm:
         releaseName: expense-tracker-db
         valueFiles:
           - $values/gitops/dev/values-db.yaml
-    - repoURL: https://github.com/NiceXD1204/expense-tracker-infra.git
+    - repoURL: https://github.com/NiceXD1204/Expense-Tracker-CD.git
       targetRevision: HEAD
       ref: values
   destination:
