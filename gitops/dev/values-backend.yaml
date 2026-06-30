@@ -2,7 +2,7 @@
 # image.tag is updated automatically by the deploy-staging GitHub Actions workflow.
 image:
   repository: 024249678351.dkr.ecr.eu-central-1.amazonaws.com/expense-tracker-backend
-  tag: 5ecc137249ec839b8573a4d039c59b1fbe8d08b8
+  tag: afe555e39ed54dd18856920494f0cb3394d2c3c3
 
 env:
   DATABASE_URL: postgresql://expenses:expenses@expense-tracker-db-postgresql.expense-tracker.svc.cluster.local:5432/expenses
