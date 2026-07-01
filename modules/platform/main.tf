@@ -80,5 +80,19 @@ module "eks" {
     }
   }
 
+  # Allow all node-to-node traffic so ingress-nginx can reach app pods on
+  # different nodes without 504 timeouts. The module wires this to whatever
+  # node SG it creates, so the rule survives destroy/apply cycles.
+  node_security_group_additional_rules = {
+    ingress_self_all = {
+      description = "Node to node all ports/protocols (fixes ingress-nginx 504 across nodes)"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
+    }
+  }
+
   tags = local.tags
 }
