@@ -2,9 +2,18 @@
 postgresql:
   # Bitnami moved older image tags from docker.io/bitnami to docker.io/bitnamilegacy
   # in Aug 2025; the chart's default "bitnami/postgresql:17.6.0-debian-12-r4" 404s.
+  #
+  # IMPORTANT: the Bitnami postgresql CHART's own version numbering (constrained
+  # to "16.x" in charts/db/Chart.yaml) does NOT track the Postgres image's major
+  # version - chart 16.7.27 actually bundles Postgres image 17.6.0. The app's
+  # additive migrations are developed/tested against Postgres 16 (same as
+  # docker-compose's postgres:16-alpine), so image.tag is pinned explicitly
+  # below to a verified real Postgres-16 build, regardless of what the chart's
+  # own default would otherwise resolve to.
   image:
     registry: docker.io
     repository: bitnamilegacy/postgresql
+    tag: 16.4.0-debian-12-r14
   auth:
     username: expenses
     password: expenses

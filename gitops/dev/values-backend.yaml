@@ -7,6 +7,11 @@ image:
 env:
   DATABASE_URL: postgresql://expenses:expenses@expense-tracker-db-postgresql.expense-tracker.svc.cluster.local:5432/expenses
 
+# Kubernetes Secret providing JWT_SECRET_KEY - create it once in the cluster
+# before the first sync (see the chart's values.yaml for the exact command).
+# Not committing the secret value itself here - only its name.
+envSecretName: expense-tracker-backend-secret
+
 ingress:
   enabled: true
   className: nginx
