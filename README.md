@@ -50,8 +50,7 @@ Copy the output into `envs/dev/backend.hcl` (see `backend.hcl.example`).
 cd envs/dev
 cp terraform.tfvars.example terraform.tfvars
 cp backend.hcl.example backend.hcl
-# edit both files: set github_repo to your "owner/repo", paste backend config,
-# optionally set slack_webhook_url
+# edit both files: set github_repo to your "owner/repo", paste backend config
 terraform init -backend-config=backend.hcl
 ```
 
@@ -110,6 +109,34 @@ Set these GitHub Actions secrets/variables in the `expense-tracker` app repo:
 
 - `AWS_ROLE_ARN` = `terraform output -raw github_actions_role_arn`
 - ECR repo URLs: `terraform output ecr_repository_urls`
+- `SLACK_WEBHOOK_URL` = your Slack Incoming Webhook URL (used by the CI/deploy
+  workflows to post build/deploy failure and success notifications). Only
+  needed in the `expense-tracker` app repo, not this one - only its workflows
+  post to Slack.
+
+### Slack alerts for pod issues (optional)
+
+Alertmanager (part of kube-prometheus-stack) can post to Slack when pods
+crash-loop or any other default warning/critical alert fires. The webhook URL
+is never a Terraform variable - it lives only in a Kubernetes Secret you
+create directly in the cluster, so it never touches this repo or Terraform
+state:
+
+```bash
+kubectl create namespace monitoring
+kubectl create secret generic slack-webhook \
+  --namespace monitoring \
+  --from-literal=slack_api_url='<YOUR_SLACK_WEBHOOK_URL>'
+```
+
+Then set `enable_slack_alerts = true` in `terraform.tfvars` and re-apply
+(`terraform apply`) so Alertmanager mounts the secret and starts routing
+`severity =~ "warning|critical"` alerts (including the built-in
+`KubePodCrashLooping` rule) to Slack.
+
+If you enable it before the secret exists, the `kube-prometheus-stack` release
+will fail because Alertmanager can't mount a Secret that isn't there yet -
+create the secret first.
 
 ## Tear down
 

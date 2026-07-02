@@ -50,34 +50,62 @@ resource "helm_release" "argocd" {
 }
 
 locals {
-  alertmanager_config = var.slack_webhook_url == "" ? null : {
-    global = {
-      resolve_timeout = "5m"
-      slack_api_url   = var.slack_webhook_url
-    }
+  # Name of the Kubernetes Secret (created manually, see README) holding the
+  # Slack webhook URL under the key "slack_api_url" - never a Terraform
+  # variable, so the actual URL never touches this repo, tfvars, or state.
+  slack_secret_name = "slack-webhook"
+  slack_secret_key  = "slack_api_url"
+
+  # merge()/concat() (not a raw ?: between object literals of different shape)
+  # deliberately, since Terraform's conditional operator requires both branches
+  # of a ?: to have identical attribute sets for object literals - merge/concat
+  # sidestep that and let enabled/disabled cleanly share one structure.
+  alertmanager_config = {
+    global = merge(
+      { resolve_timeout = "5m" },
+      # Alertmanager reads the webhook from the file mounted from the Secret
+      # named in alertmanagerSpec.secrets below, instead of a literal value.
+      var.enable_slack_alerts ? { slack_api_url_file = "/etc/alertmanager/secrets/${local.slack_secret_name}/${local.slack_secret_key}" } : {}
+    )
     route = {
       receiver = "default"
-      routes = [
+      routes = var.enable_slack_alerts ? [
         {
-          matchers = ["alertname = KubePodCrashLooping"]
+          # Catches KubePodCrashLooping and every other default kube-prometheus-stack
+          # alert tagged warning/critical (KubePodNotReady, KubeJobFailed,
+          # KubeDeploymentReplicasMismatch, etc.) - not just crash-loops.
+          matchers = ["severity =~ \"warning|critical\""]
           receiver = "slack-notifications"
         },
-      ]
+      ] : []
     }
-    receivers = [
-      { name = "default" },
-      {
-        name = "slack-notifications"
-        slack_configs = [
-          {
-            channel       = "#alerts"
-            send_resolved = true
-            title         = "{{ .CommonAnnotations.summary }}"
-            text          = "{{ .CommonAnnotations.description }}"
-          },
-        ]
-      },
-    ]
+    receivers = concat(
+      [{ name = "default" }],
+      var.enable_slack_alerts ? [
+        {
+          name = "slack-notifications"
+          slack_configs = [
+            {
+              channel       = "#alerts"
+              send_resolved = true
+              title         = "{{ .CommonAnnotations.summary }}"
+              text          = "{{ .CommonAnnotations.description }}"
+            },
+          ]
+        },
+      ] : []
+    )
+  }
+
+  alertmanager_values = {
+    config = local.alertmanager_config
+    alertmanagerSpec = {
+      # Mounts the pre-created Secret's keys as files under
+      # /etc/alertmanager/secrets/<secret-name>/<key> in the Alertmanager pod.
+      # Empty when disabled, so there's nothing to mount and no dependency on
+      # the Secret existing yet.
+      secrets = var.enable_slack_alerts ? [local.slack_secret_name] : []
+    }
   }
 }
 
@@ -91,9 +119,7 @@ resource "helm_release" "kube_prometheus_stack" {
 
   values = [
     yamlencode({
-      alertmanager = local.alertmanager_config == null ? {} : {
-        config = local.alertmanager_config
-      }
+      alertmanager = local.alertmanager_values
       # Keep storage requests modest for a small spot node group.
       prometheus = {
         prometheusSpec = {

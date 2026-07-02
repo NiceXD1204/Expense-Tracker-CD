@@ -30,9 +30,16 @@ variable "node_max_size" {
   default = 2
 }
 
-variable "slack_webhook_url" {
-  description = "Slack incoming webhook URL for Alertmanager (pod restart/crash-loop alerts). Leave empty to disable."
-  type        = string
-  default     = ""
-  sensitive   = true
+variable "enable_slack_alerts" {
+  description = <<-EOT
+    Whether Alertmanager sends Slack notifications for pod crash-loops and
+    other warning/critical alerts. The webhook URL itself is never a
+    Terraform variable - it lives only in a Kubernetes Secret you create
+    directly in the cluster (see expense-tracker-infra/README.md), so it
+    never touches Terraform state or this repo. Leave this false until that
+    secret exists, or the kube-prometheus-stack release will fail to start
+    (Alertmanager can't mount a Secret that isn't there yet).
+  EOT
+  type        = bool
+  default     = false
 }

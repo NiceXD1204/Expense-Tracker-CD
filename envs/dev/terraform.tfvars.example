@@ -8,5 +8,8 @@ github_repo = "NiceXD1204/expense-tracker"
 # node_min_size       = 1
 # node_max_size       = 2
 
-# Optional: Slack incoming webhook for Alertmanager pod-restart/crash-loop alerts.
-# slack_webhook_url = "https://hooks.slack.com/services/XXX/YYY/ZZZ"
+# Optional: Slack notifications for pod crash-loops and other warning/critical
+# alerts (Alertmanager). The webhook URL itself is NOT a Terraform variable -
+# create it as a Kubernetes Secret directly in the cluster first (see
+# expense-tracker-infra/README.md), then flip this on.
+# enable_slack_alerts = true
