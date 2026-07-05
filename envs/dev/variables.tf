@@ -54,3 +54,10 @@ variable "letsencrypt_email" {
   description = "Email for Let's Encrypt certificate expiry notices"
   type        = string
 }
+
+variable "slack_webhook_url" {
+  description = "Slack incoming webhook URL for Alertmanager notifications. Set in gitignored terraform.tfvars; never commit the real value."
+  type        = string
+  default     = ""
+  sensitive   = true
+}

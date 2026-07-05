@@ -16,3 +16,5 @@ github_repo = "NiceXD1204/expense-tracker"
 
 domain_name       = "expensetracker.skin"
 letsencrypt_email = "you@example.com"
+
+slack_webhook_url = "https://hooks.slack.com/services/REPLACE/WITH/REAL"

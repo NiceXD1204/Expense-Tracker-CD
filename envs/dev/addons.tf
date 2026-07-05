@@ -49,6 +49,53 @@ resource "helm_release" "argocd" {
   depends_on = [helm_release.ingress_nginx]
 }
 
+# "App of apps" root Application - previously bootstrapped by hand via
+# `kubectl apply -f gitops/dev/root-app.yaml` per the README. Once ArgoCD
+# adopts this, it creates/manages the backend/frontend/db Applications from
+# gitops/dev/*-app.yaml on its own.
+# Mirrors the kubernetes_manifest.letsencrypt_issuer pattern below: the
+# Application CRD is installed by helm_release.argocd in this same apply, so
+# this resource depends on that release rather than a separately-installed CRD.
+resource "kubernetes_manifest" "argocd_root_app" {
+  manifest = {
+    apiVersion = "argoproj.io/v1alpha1"
+    kind       = "Application"
+    metadata = {
+      name      = "expense-tracker-dev"
+      namespace = "argocd"
+      finalizers = [
+        "resources-finalizer.argocd.argoproj.io"
+      ]
+    }
+    spec = {
+      project = "default"
+      source = {
+        repoURL        = "https://github.com/NiceXD1204/Expense-Tracker-CD.git"
+        targetRevision = "HEAD"
+        path           = "gitops/dev"
+        directory = {
+          include = "{backend-app.yaml,frontend-app.yaml,db-app.yaml}"
+        }
+      }
+      destination = {
+        server    = "https://kubernetes.default.svc"
+        namespace = "argocd"
+      }
+      syncPolicy = {
+        automated = {
+          prune    = true
+          selfHeal = true
+        }
+        syncOptions = [
+          "CreateNamespace=true"
+        ]
+      }
+    }
+  }
+
+  depends_on = [helm_release.argocd]
+}
+
 locals {
   # Name of the Kubernetes Secret (created manually, see README) holding the
   # Slack webhook URL under the key "slack_api_url" - never a Terraform
@@ -109,6 +156,31 @@ locals {
   }
 }
 
+resource "kubernetes_namespace" "monitoring" {
+  metadata {
+    name = "monitoring"
+  }
+}
+
+# Slack webhook secret, managed by Terraform (value from the gitignored
+# terraform.tfvars, never committed). Previously created manually via
+# `kubectl create secret` per the README. Only created when both alerts are
+# enabled AND a URL is actually supplied - see var.slack_webhook_url.
+resource "kubernetes_secret" "slack_webhook" {
+  count = var.enable_slack_alerts && var.slack_webhook_url != "" ? 1 : 0
+
+  metadata {
+    name      = local.slack_secret_name
+    namespace = kubernetes_namespace.monitoring.metadata[0].name
+  }
+
+  data = {
+    (local.slack_secret_key) = var.slack_webhook_url
+  }
+
+  type = "Opaque"
+}
+
 resource "helm_release" "kube_prometheus_stack" {
   name             = "kube-prometheus-stack"
   repository       = "https://prometheus-community.github.io/helm-charts"
@@ -132,7 +204,13 @@ resource "helm_release" "kube_prometheus_stack" {
     })
   ]
 
-  depends_on = [module.platform]
+  # kubernetes_secret.slack_webhook must exist BEFORE this release, not after:
+  # helm_release defaults to wait=true, so if enable_slack_alerts=true this
+  # release blocks until Alertmanager is Ready, which requires the Secret
+  # (mounted via alertmanagerSpec.secrets) to already be there. Safe to list
+  # even when the secret has count=0 (enable_slack_alerts=false) - Terraform
+  # treats a zero-count resource in depends_on as a no-op dependency.
+  depends_on = [module.platform, kubernetes_namespace.monitoring, kubernetes_secret.slack_webhook]
 }
 
 resource "helm_release" "external_dns" {
