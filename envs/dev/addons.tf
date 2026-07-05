@@ -216,3 +216,37 @@ resource "kubernetes_manifest" "letsencrypt_issuer" {
 
   depends_on = [helm_release.cert_manager]
 }
+
+# --- Backend JWT secret, managed by Terraform ---------------------------------
+# Previously created manually via `kubectl create secret`, which meant it was
+# lost on every destroy/apply cycle and the backend seed job would fail with
+# CreateContainerConfigError until recreated. Generating it here makes the
+# environment rebuild cleanly from `terraform apply` alone. The value lives in
+# Terraform state (encrypted S3 backend) - acceptable for this dev environment.
+
+# The app namespace is normally created by ArgoCD (CreateNamespace=true), but
+# that happens after apply. Create it here so the Secret has somewhere to live;
+# ArgoCD will adopt the existing namespace on sync.
+resource "kubernetes_namespace" "app" {
+  metadata {
+    name = "expense-tracker"
+  }
+}
+
+resource "random_password" "jwt_secret" {
+  length  = 64
+  special = false
+}
+
+resource "kubernetes_secret" "backend_jwt" {
+  metadata {
+    name      = "expense-tracker-backend-secret"
+    namespace = kubernetes_namespace.app.metadata[0].name
+  }
+
+  data = {
+    JWT_SECRET_KEY = random_password.jwt_secret.result
+  }
+
+  type = "Opaque"
+}
