@@ -13,3 +13,6 @@ github_repo = "NiceXD1204/expense-tracker"
 # create it as a Kubernetes Secret directly in the cluster first (see
 # expense-tracker-infra/README.md), then flip this on.
 # enable_slack_alerts = true
+
+domain_name       = "expensetracker.skin"
+letsencrypt_email = "you@example.com"

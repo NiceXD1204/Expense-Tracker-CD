@@ -9,3 +9,9 @@ variable "region" {
   type        = string
   default     = "eu-central-1"
 }
+
+variable "domain_name" {
+  description = "Public domain for the app, delegated from GoDaddy to this Route 53 zone"
+  type        = string
+  default     = "expensetracker.skin"
+}

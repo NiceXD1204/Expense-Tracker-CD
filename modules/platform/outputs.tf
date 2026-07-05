@@ -35,3 +35,8 @@ output "github_actions_role_arn" {
   description = "IAM role ARN for the GitHub Actions OIDC role - put this in the repo's AWS_ROLE_ARN secret"
   value       = module.github_actions_role.arn
 }
+
+output "oidc_provider_arn" {
+  description = "IAM OIDC provider ARN for the EKS cluster - used for IRSA roles (ExternalDNS etc.)"
+  value       = module.eks.oidc_provider_arn
+}

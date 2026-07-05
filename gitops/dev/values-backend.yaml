@@ -15,8 +15,13 @@ envSecretName: expense-tracker-backend-secret
 ingress:
   enabled: true
   className: nginx
-  host: api.expense-tracker.local
+  host: api.expensetracker.skin
   path: /
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+    secretName: backend-tls
 
 resources:
   requests:

@@ -43,3 +43,14 @@ variable "enable_slack_alerts" {
   type        = bool
   default     = false
 }
+
+variable "domain_name" {
+  description = "Public domain for the app (hosted zone created in bootstrap)"
+  type        = string
+  default     = "expensetracker.skin"
+}
+
+variable "letsencrypt_email" {
+  description = "Email for Let's Encrypt certificate expiry notices"
+  type        = string
+}

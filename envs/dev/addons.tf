@@ -134,3 +134,85 @@ resource "helm_release" "kube_prometheus_stack" {
 
   depends_on = [module.platform]
 }
+
+resource "helm_release" "external_dns" {
+  name             = "external-dns"
+  repository       = "https://kubernetes-sigs.github.io/external-dns"
+  chart            = "external-dns"
+  version          = "1.15.0"
+  namespace        = "external-dns"
+  create_namespace = true
+
+  values = [
+    yamlencode({
+      provider = { name = "aws" }
+      # Only manage records for our domain, and only from Ingress resources.
+      domainFilters = [var.domain_name]
+      sources       = ["ingress"]
+      # "sync" would delete records it no longer owns; "upsert-only" is safer
+      # for a zone that must survive cluster teardown - stale records are
+      # simply overwritten on the next cluster bring-up.
+      policy = "upsert-only"
+      # TXT ownership records let ExternalDNS track which records it created.
+      txtOwnerId = "expense-tracker-dev"
+      serviceAccount = {
+        create = true
+        name   = "external-dns"
+        annotations = {
+          "eks.amazonaws.com/role-arn" = module.external_dns_irsa_role.iam_role_arn
+        }
+      }
+    })
+  ]
+
+  depends_on = [helm_release.ingress_nginx]
+}
+
+resource "helm_release" "cert_manager" {
+  name             = "cert-manager"
+  repository       = "https://charts.jetstack.io"
+  chart            = "cert-manager"
+  version          = "v1.16.2"
+  namespace        = "cert-manager"
+  create_namespace = true
+
+  set {
+    name  = "crds.enabled"
+    value = "true"
+  }
+
+  depends_on = [module.platform]
+}
+
+# ClusterIssuer telling cert-manager how to get certs from Let's Encrypt.
+# HTTP-01 validation: LE hits http://<host>/.well-known/acme-challenge/... via
+# the nginx ingress, so no extra IAM is needed (unlike DNS-01).
+resource "kubernetes_manifest" "letsencrypt_issuer" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "ClusterIssuer"
+    metadata = {
+      name = "letsencrypt-prod"
+    }
+    spec = {
+      acme = {
+        server = "https://acme-v02.api.letsencrypt.org/directory"
+        email  = var.letsencrypt_email
+        privateKeySecretRef = {
+          name = "letsencrypt-prod-account-key"
+        }
+        solvers = [
+          {
+            http01 = {
+              ingress = {
+                ingressClassName = "nginx"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+
+  depends_on = [helm_release.cert_manager]
+}
