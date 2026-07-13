@@ -4,6 +4,10 @@ resource "aws_ecr_repository" "this" {
 
   name                 = "${var.project_name}-${each.key}"
   image_tag_mutability = "MUTABLE"
+  # This project destroys the whole environment routinely (see the "ephemeral
+  # infra" cost model in the README) - without force_delete, every single
+  # destroy fails here and needs a manual image cleanup first.
+  force_delete = true
 
   image_scanning_configuration {
     scan_on_push = true
