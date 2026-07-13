@@ -201,6 +201,19 @@ resource "helm_release" "kube_prometheus_stack" {
           }
         }
       }
+      # Wire up Loki (installed below) as a Grafana datasource, so logs are
+      # queryable in the same Grafana that already has our Prometheus metrics
+      # - no second UI to learn.
+      grafana = {
+        additionalDataSources = [
+          {
+            name   = "Loki"
+            type   = "loki"
+            access = "proxy"
+            url    = "http://loki.monitoring.svc.cluster.local:3100"
+          }
+        ]
+      }
     })
   ]
 
@@ -210,7 +223,115 @@ resource "helm_release" "kube_prometheus_stack" {
   # (mounted via alertmanagerSpec.secrets) to already be there. Safe to list
   # even when the secret has count=0 (enable_slack_alerts=false) - Terraform
   # treats a zero-count resource in depends_on as a no-op dependency.
-  depends_on = [module.platform, kubernetes_namespace.monitoring, kubernetes_secret.slack_webhook]
+  depends_on = [module.platform, kubernetes_namespace.monitoring, kubernetes_secret.slack_webhook, helm_release.loki]
+}
+
+# --- Logging: Loki + Alloy -----------------------------------------------
+# Loki stores and indexes logs; LogQL queries run right inside the Grafana
+# we already have from kube-prometheus-stack above. Deployed in "Monolithic"
+# (single small pod, filesystem storage) mode since this cluster is
+# destroyed nightly anyway - no need for S3-backed chunk storage or a
+# multi-replica HA setup.
+resource "helm_release" "loki" {
+  name             = "loki"
+  repository       = "https://grafana-community.github.io/helm-charts"
+  chart            = "loki"
+  version          = "18.4.4"
+  namespace        = "monitoring"
+  create_namespace = false
+
+  values = [
+    yamlencode({
+      deploymentMode = "Monolithic"
+      loki = {
+        auth_enabled = false
+        commonConfig = { replication_factor = 1 }
+        storage      = { type = "filesystem" }
+        schemaConfig = {
+          configs = [
+            {
+              from         = "2024-01-01"
+              store        = "tsdb"
+              object_store = "filesystem"
+              schema       = "v13"
+              index        = { prefix = "loki_index_", period = "24h" }
+            }
+          ]
+        }
+      }
+      singleBinary = {
+        replicas = 1
+        # No PVC: logs don't need to survive the nightly destroy/apply cycle.
+        persistence = { enabled = false }
+        resources = {
+          requests = { cpu = "100m", memory = "256Mi" }
+          limits   = { cpu = "500m", memory = "512Mi" }
+        }
+      }
+      # The chart also defines a "SimpleScalable" (read/write/backend) target
+      # that ships with non-zero default replicas. deploymentMode=Monolithic
+      # alone doesn't disable it - these must be explicitly zeroed out, or the
+      # chart's own validation refuses to install (can't have both targets
+      # active at once).
+      read    = { replicas = 0 }
+      write   = { replicas = 0 }
+      backend = { replicas = 0 }
+      # Both memcached-based caches default to production-scale sizing
+      # (chunksCache defaults to 8192 MB - more than this entire node has).
+      # Scaled down for a small single/dual-node dev cluster.
+      chunksCache  = { allocatedMemory = 256 }
+      resultsCache = { allocatedMemory = 128 }
+      # We already have Grafana (kube-prometheus-stack) and don't need the
+      # gateway, self-monitoring, or canary sidecars for a student project.
+      gateway    = { enabled = false }
+      monitoring = { selfMonitoring = { enabled = false }, lokiCanary = { enabled = false } }
+      test       = { enabled = false }
+    })
+  ]
+
+  depends_on = [module.platform, kubernetes_namespace.monitoring]
+}
+
+# Alloy is Grafana's log collector - it tails every pod's stdout/stderr and
+# ships it to Loki. It replaces Promtail, which reached end-of-life on
+# 2026-03-02. The k8s-monitoring chart wraps Alloy with a much simpler
+# values schema instead of hand-writing Alloy's own config language.
+resource "helm_release" "k8s_monitoring" {
+  name             = "k8s-monitoring"
+  repository       = "https://grafana.github.io/helm-charts"
+  chart            = "k8s-monitoring"
+  version          = "4.2.1"
+  namespace        = "monitoring"
+  create_namespace = false
+
+  values = [
+    yamlencode({
+      cluster = { name = "expense-tracker-dev" }
+      # At least one named collector (Alloy DaemonSet) must be defined - the
+      # name is arbitrary. With exactly one collector enabled, features that
+      # don't set their own `collector:` field (like podLogsViaLoki below)
+      # auto-assign to it.
+      collectors = {
+        # filesystem-log-reader mounts the node's /var/log, which
+        # podLogsViaLoki requires in order to tail container logs.
+        logs = { presets = ["filesystem-log-reader"] }
+      }
+      # destinations is a map keyed by an arbitrary name, not a list.
+      destinations = {
+        loki = {
+          type = "loki"
+          url  = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
+      # The pod-log feature is named podLogsViaLoki in this chart version
+      # (there's no generic "podLogs" key). Metrics/cost/host/traces/profiles
+      # features all default to disabled already, so nothing else to turn off
+      # - kube-prometheus-stack already covers metrics for this project.
+      podLogsViaLoki = { enabled = true }
+    })
+  ]
+
+  depends_on = [helm_release.loki]
 }
 
 resource "helm_release" "external_dns" {

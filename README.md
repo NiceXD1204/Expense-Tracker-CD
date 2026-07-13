@@ -111,7 +111,7 @@ graph TD
 | **GitOps** | ArgoCD (app-of-apps pattern) |
 | **Ingress / TLS** | ingress-nginx, cert-manager, Let's Encrypt (HTTP-01) |
 | **DNS** | ExternalDNS, Route 53 |
-| **Observability** | kube-prometheus-stack (Prometheus, Grafana, Alertmanager), Slack alerts |
+| **Observability** | kube-prometheus-stack (Prometheus, Grafana, Alertmanager), Loki + Grafana Alloy (logs), Slack alerts |
 | **App** | React frontend, Python/FastAPI-style backend (JWT auth), PostgreSQL 16 |
 
 ## 🚀 Prerequisites
@@ -153,7 +153,7 @@ cd envs/dev
 terraform init -backend-config="backend.hcl"
 
 # Stage 1: build the cluster + core add-ons
-terraform apply -target=module.platform -target=helm_release.argocd -target=helm_release.ingress_nginx -target=helm_release.cert_manager -target=helm_release.external_dns -target=helm_release.kube_prometheus_stack
+terraform apply -target=module.platform -target=helm_release.argocd -target=helm_release.ingress_nginx -target=helm_release.cert_manager -target=helm_release.external_dns -target=helm_release.loki -target=helm_release.k8s_monitoring -target=helm_release.kube_prometheus_stack
 
 # Stage 2: apply the ArgoCD root-app + Let's Encrypt issuer (needs the cluster to exist first)
 terraform apply
@@ -164,6 +164,23 @@ Two stages because the `kubernetes_manifest` resources (the ArgoCD root Applicat
 ### 4. Access
 
 Give it ~15–20 minutes for the cluster, add-ons, and ArgoCD sync to settle. The app is then live at **https://expensetracker.skin** with a valid Let's Encrypt certificate — no manual `kubectl` required.
+
+### 4b. Viewing logs
+
+Loki + Alloy ship every pod's stdout/stderr into Grafana automatically - no app code changes needed. To view them:
+
+```bash
+aws eks update-kubeconfig --name expense-tracker-dev --region eu-central-1
+kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80
+```
+
+Open http://localhost:3000 (default login `admin` / get the password with
+`kubectl get secret -n monitoring kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 -d`),
+go to **Explore**, pick the **Loki** datasource, and query e.g.:
+
+```logql
+{namespace="expense-tracker"}
+```
 
 ### 5. Tear down
 
@@ -195,7 +212,7 @@ gitops/dev/          # ArgoCD Application manifests + per-env Helm values for th
 
 ## 💰 Cost
 
-- **Running:** roughly **$5/day** — EKS control plane, NAT gateway, one spot worker node, and a load balancer.
+- **Running:** roughly **$5/day** — EKS control plane, NAT gateway, one spot worker node, and a load balancer. Loki + Alloy add a bit of CPU/memory on the existing node (no new PVC, EBS volume, or load balancer), so this doesn't meaningfully change.
 - **Destroyed:** roughly **$0.50/month** — just the Route 53 hosted zone kept alive in `bootstrap`.
 
 ## Troubleshooting
