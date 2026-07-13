@@ -1,7 +1,7 @@
 # Dev environment overrides for charts/backend (in the expense-tracker app repo).
 # image.tag is updated automatically by the deploy-staging GitHub Actions workflow.
 image:
-  repository: 024249678351.dkr.ecr.eu-central-1.amazonaws.com/expense-tracker-backend
+  repository: 857812839927.dkr.ecr.eu-central-1.amazonaws.com/expense-tracker-backend
   tag: fa72ee6e3b9b4ed22f5e2901e80315596bcbe40f
 
 env:
