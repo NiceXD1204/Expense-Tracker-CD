@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ספר פרויקט גמר – Expense Tracker</title>
+<style>
+  @media print {
+    .page {
+      page-break-before: always;
+      page-break-after: auto;
+      page-break-inside: auto;
+      box-shadow: none !important;
+      margin: 0 !important;
+      min-height: 0 !important;
+    }
+    .page:first-child { page-break-before: avoid; }
+    body { background: #fff !important; }
+  }
+  body {
+    font-family: "David", "Segoe UI", Arial, sans-serif;
+    background: #e8e8e8;
+    margin: 0;
+    padding: 0;
+    counter-reset: page;
+    color: #1a1a1a;
+    line-height: 1.7;
+  }
+  .page {
+    background: #fff;
+    width: 210mm;
+    min-height: 250mm;
+    margin: 24px auto;
+    padding: 20mm 18mm;
+    box-shadow: 0 0 12px rgba(0,0,0,0.25);
+    position: relative;
+    box-sizing: border-box;
+  }
+  .page::after {
+    counter-increment: page;
+    content: counter(page);
+    position: absolute;
+    bottom: 10mm;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #888;
+  }
+  h1 {
+    color: #7a1f2b;
+    border-bottom: 3px solid #7a1f2b;
+    padding-bottom: 8px;
+    font-size: 26px;
+  }
+  h2 {
+    color: #1f4e7a;
+    border-bottom: 1px solid #1f4e7a;
+    padding-bottom: 4px;
+    font-size: 20px;
+    margin-top: 28px;
+  }
+  h3 {
+    color: #2c2c2c;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+  .cover {
+    text-align: center;
+    padding-top: 60mm;
+  }
+  .cover h1 {
+    border: none;
+    font-size: 40px;
+    color: #7a1f2b;
+  }
+  .cover .subtitle {
+    font-size: 20px;
+    color: #444;
+    margin-top: 10px;
+  }
+  .cover .names {
+    margin-top: 80px;
+    font-size: 22px;
+    font-weight: bold;
+  }
+  .cover .meta {
+    margin-top: 40px;
+    font-size: 16px;
+    color: #555;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  table, th, td {
+    border: 1px solid #999;
+  }
+  th, td {
+    padding: 8px 10px;
+    text-align: right;
+  }
+  th {
+    background: #f0f0f0;
+  }
+  .blank {
+    color: #aaa;
+  }
+  pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    direction: ltr;
+    text-align: left;
+    padding: 14px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 13px;
+    font-family: "Consolas", "Courier New", monospace;
+    line-height: 1.5;
+  }
+  code {
+    font-family: "Consolas", "Courier New", monospace;
+  }
+  .diagram {
+    background: #1e1e1e;
+    color: #9cdcfe;
+    direction: ltr;
+    text-align: left;
+    padding: 14px;
+    border-radius: 6px;
+    font-family: "Consolas", monospace;
+    font-size: 13px;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .callout {
+    background: #fef6e4;
+    border-right: 4px solid #d9a441;
+    padding: 10px 16px;
+    margin: 16px 0;
+    border-radius: 4px;
+  }
+  .challenge {
+    background: #fdecea;
+    border-right: 4px solid #c0392b;
+    padding: 10px 16px;
+    margin: 10px 0;
+    border-radius: 4px;
+  }
+  .solution {
+    background: #eafaf1;
+    border-right: 4px solid #27ae60;
+    padding: 10px 16px;
+    margin: 0 0 16px 0;
+    border-radius: 4px;
+  }
+  ul, ol { margin: 8px 0; padding-right: 24px; }
+  .toc a { color: #1f4e7a; text-decoration: none; }
+  .toc li { margin: 6px 0; }
+  .sig-line {
+    display: inline-block;
+    width: 220px;
+    border-bottom: 1px solid #333;
+    margin: 0 8px;
+  }
+  .center { text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- ===================== עמוד שער ===================== -->
+<div class="page cover">
+  <h1>ספר פרויקט גמר</h1>
+  <div class="subtitle">Expense Tracker – מעקב הוצאות והכנסות מבוסס ענן</div>
+  <div class="subtitle">פרויקט DevOps מלא: פיתוח, קונטיינריזציה, תשתית ענן ו-CI/CD/GitOps</div>
+  <div class="names">דוד סרור ומתן פרל</div>
+  <div class="meta">
+    מגמת לימוד: DevOps<br>
+    שם המכללה: אורט סינגאלובסקי<br>
+    תאריך הגשה: <span class="blank">____________________</span>
+  </div>
+</div>
+
+<!-- ===================== הצהרת הסטודנטים ===================== -->
+<div class="page">
+  <h1 class="center" style="border:none">הצהרת הסטודנטים</h1>
+  <p style="margin-top:40px">
+    החתומים מטה, מצהירים בזאת כי כל פרויקט הגמר המוגש בספר זה, הינו פרי עבודתנו בלבד,
+    על בסיס הנחייתו של המנחה ותוך הסתמכות על מקורות הידע והמידע האחרים המצויים
+    בביבליוגרפיה המובאת בסיום ספר זה.
+  </p>
+  <p>
+    אנחנו מודעים לאחריות שהננו מקבלים על עצמנו ע"י חתימתנו על הצהרה זאת,
+    שכל הנאמר בה הינה אמת ורק אמת.
+  </p>
+  <p class="center" style="font-weight:bold; font-size:18px; margin-top:40px">דוד סרור ומתן פרל</p>
+  <p class="center">חתימת התלמידים: <span class="sig-line"></span></p>
+
+  <h2 style="margin-top:60px">אישור המנחה</h2>
+  <p>הריני מאשר הגשת ספר פרויקט הגמר להערכה.</p>
+  <p style="margin-top:40px">חתימת המנחה: <span class="sig-line"></span></p>
+
+  <table style="margin-top:60px">
+    <tr><th>חתימת הסטודנטים</th><th>חתימת המנחה האישי</th></tr>
+    <tr><td>דוד סרור ומתן פרל</td><td class="blank">____________________</td></tr>
+  </table>
+
+  <p class="center" style="margin-top:60px; font-weight:bold">
+    המכון הממשלתי להכשרה בטכנולוגיה ובמדע
+  </p>
+</div>
+
+<!-- ===================== טופס הצעה ===================== -->
+<div class="page">
+  <p class="center">יחידת הפרויקטים</p>
+  <p class="center">חוזר מנהל מה"ט 11-4-51 – נספח מס' 1</p>
+  <p>תאריך: <span class="blank">____________________</span></p>
+
+  <p>לכבוד<br>יחידת הפרויקטים<br>מה"ט</p>
+  <h2>הצעה לפרויקט גמר</h2>
+
+  <h3>פרטי הסטודנטים</h3>
+  <div class="callout">
+    פרטים אישיים מלאים (ת.ז., כתובת, טלפון) נשמרים בעותק המקומי בלבד ואינם מופיעים בגרסה זו
+    מטעמי פרטיות (ריפוזיטורי זה ציבורי). ראו את הקובץ המקומי לצורך הגשה סופית.
+  </div>
+  <table>
+    <tr>
+      <th>שם הסטודנט</th><th>ת.ז. 9 ספרות</th><th>כתובת</th><th>טלפון נייד</th><th>תאריך סיום הלימודים</th>
+    </tr>
+    <tr>
+      <td>דוד סרור</td><td class="blank">_________</td><td class="blank">_________</td><td class="blank">_________</td><td class="blank">_________</td>
+    </tr>
+    <tr>
+      <td>מתן פרל</td><td class="blank">_________</td><td class="blank">_________</td><td class="blank">_________</td><td class="blank">_________</td>
+    </tr>
+  </table>
+
+  <p>שם המכללה: אורט סינגאלובסקי</p>
+  <p>סמל המכללה: <span class="blank">____________________</span></p>
+  <p>מגמת לימוד: DevOps</p>
+  <p>מקום ביצוע הפרויקט: מכללה</p>
+
+  <h3>א. פרטי המנחה האישי</h3>
+  <table>
+    <tr><th>שם המנחה</th><th>כתובת</th><th>טלפון נייד</th><th>תואר</th><th>מקום עבודה/תפקיד</th></tr>
+    <tr><td class="blank">_________</td><td class="blank">_________</td><td class="blank">_________</td><td class="blank">_________</td><td>מנהל מגמה</td></tr>
+  </table>
+
+  <p style="margin-top:60px; font-weight:bold" class="center">דוד סרור ומתן פרל</p>
+  <table>
+    <tr><th>חתימת הסטודנט</th><th>חתימת המנחה האישי</th><th>חתימת הגורם המקצועי מטעם מה"ט</th></tr>
+    <tr><td class="blank">_________</td><td class="blank">_________</td><td class="blank">_________</td></tr>
+  </table>
+</div>
+
+<!-- ===================== תוכן עניינים ===================== -->
+<div class="page">
+  <h1>תוכן עניינים</h1>
+  <ol class="toc">
+    <li><a href="#intro">מבוא</a></li>
+    <li><a href="#theory1">רקע תאורטי – ארכיטקטורת Monolith לעומת Microservices</a></li>
+    <li><a href="#theory2">רקע תאורטי – DevOps: חיבור בין פיתוח לתפעול</a></li>
+    <li><a href="#theory3">רקע תאורטי – CI/CD: אינטגרציה ופריסה רציפה</a></li>
+    <li><a href="#goals">מטרות הפרויקט וקצת על Expense Tracker</a></li>
+    <li><a href="#arch">ארכיטקטורת המערכת הכללית (Microservices)</a></li>
+    <li><a href="#frontend">שכבת ה-Frontend</a></li>
+    <li><a href="#backend">שכבת ה-Backend</a></li>
+    <li><a href="#docker">קונטיינריזציה באמצעות Docker ו-ECR</a></li>
+    <li><a href="#k8s">תזמור השירותים באמצעות Kubernetes</a></li>
+    <li><a href="#helm">Helm – package manager for k8s</a></li>
+    <li><a href="#iac">ניהול תשתיות (Infrastructure as Code) באמצעות Terraform</a></li>
+    <li><a href="#network">רשת (Networking) – VPC, Ingress, DNS ו-TLS</a></li>
+    <li><a href="#gitops">GitOps ו-ArgoCD – פריסה מבוססת אמת אחת</a></li>
+    <li><a href="#cicd">CI/CD – מתודולוגיית GitHub Actions</a></li>
+    <li><a href="#monitoring">ניטור – Prometheus, Grafana ו-Loki</a></li>
+    <li><a href="#security">אבטחת מידע</a></li>
+    <li><a href="#cost">ניהול עלויות תשתית ענן</a></li>
+    <li><a href="#challenges">אתגרים ופתרונות במהלך הפיתוח</a></li>
+    <li><a href="#summary">סיכום</a></li>
+  </ol>
+</div>
+
+<!-- ===================== מבוא ===================== -->
+<div class="page" id="intro">
+  <h1>מבוא</h1>
+  <p>
+    בעשור האחרון חלה קפיצה משמעותית באופן שבו מערכות תוכנה מפותחות, נפרסות ומתוחזקות.
+    המעבר מעבודה מקומית על שרתים בודדים לתשתיות ענן מבוזרות, יחד עם עלייה בדרישות
+    המשתמשים למהירות תגובה, זמינות גבוהה ויכולת שדרוג מיידית, הוביל לצורך במתודולוגיות
+    עבודה חדשות.
+  </p>
+  <p>
+    אחת המתודולוגיות הבולטות בהקשר זה היא <b>DevOps</b>, המשלבת בין תהליכי פיתוח
+    (Development) לבין תהליכי תפעול ותחזוקה (Operations), תוך דגש על אוטומציה, ניהול
+    גרסאות, ניטור רציף ושיפור מתמיד. DevOps משנה את צורת החשיבה הארגונית בכך שהיא
+    מקדמת עבודה שיתופית ואינטגרטיבית, במקום מודל היררכי ומבודד בו צוותים פועלים בנפרד.
+  </p>
+  <p>
+    פרויקט <b>Expense Tracker</b> משקף יישום מלא של עקרונות אלו. מדובר במערכת אינטרנטית
+    לניהול הוצאות והכנסות אישיות, אשר פותחה תוך הקפדה על מודולריות, אבטחת מידע, ניהול
+    עלויות מושכל ותפעול יציב. הפרויקט כולל הקמה מלאה של תשתית ענן ב-AWS, קונטיינריזציה
+    של כל רכיבי המערכת, אשכול Kubernetes מנוהל (EKS), פריסה בשיטת GitOps באמצעות
+    ArgoCD, ותהליכי CI/CD אוטומטיים מלאים באמצעות GitHub Actions.
+  </p>
+  <p>
+    ייחוד הפרויקט הוא בגישה שאומצה לניהול עלויות: מאחר שהתשתית מיועדת לסביבת פיתוח
+    ולימוד ולא לשימוש מסחרי מתמשך, התשתית תוכננה מלכתחילה כ"ephemeral" – ניתנת
+    להקמה ולהריסה מלאה תוך דקות באמצעות Terraform, כך שהעלות נושאת רק בזמן שהסביבה
+    אכן פעילה.
+  </p>
+  <p>
+    באמצעות פרויקט זה, מתקבל מודל עבודה המתאים לעולמות התעשייה כיום, ומהווה דוגמה לאופן
+    שבו ניתן להעביר אפליקציה קיימת לסביבת ענן מאובטחת, מנוהלת ומבוקרת – תוך שמירה על
+    משמעת עלויות מחמירה, המתאימה לפרויקט לימודי.
+  </p>
+</div>
+
+<!-- ===================== רקע תאורטי 1 ===================== -->
+<div class="page" id="theory1">
+  <h1>רקע תאורטי</h1>
+  <h2>ארכיטקטורת Monolith לעומת Microservices</h2>
+  <p>
+    במערכות מונוליטיות, כל רכיבי האפליקציה מאוגדים יחד בקוד אחד: ממשק המשתמש, הלוגיקה
+    העסקית והתקשורת למסד הנתונים. מצב זה מקל על פיתוח ראשוני, אך יוצר קושי עצום ככל
+    שמורכבות המערכת גדלה:
+  </p>
+  <ul>
+    <li>כל שינוי קטן דורש הידור מחדש של המערכת כולה</li>
+    <li>איתור תקלות מורכב וארוך</li>
+    <li>קיים קושי לבצע Scaling נקודתי</li>
+    <li>תלות בין רכיבים מקשה על הוספת פיצ'רים באופן עצמאי</li>
+  </ul>
+  <p>
+    כתגובה, התפתחה ארכיטקטורת <b>Microservices</b>, המחלקת את האפליקציה למספר שירותים
+    עצמאיים. כל שירות מנהל אחריות תחומה, ניתן לפיתוח, בדיקה ופריסה עצמאית, ומסוגל לגדול
+    בהתאם לצריכה שלו.
+  </p>
+  <p>מבנה זה משפר:</p>
+  <ul>
+    <li>זמני פיתוח</li>
+    <li>זמינות מערכתית</li>
+    <li>אפשרות ליישום טכנולוגיות שונות באותה מערכת</li>
+    <li>עמידות בפני תקלות</li>
+  </ul>
+  <p>
+    בפרויקט Expense Tracker, האפליקציה חולקה לשלושה שירותים עצמאיים: שירות Frontend
+    (React), שירות Backend (FastAPI) ומסד נתונים (PostgreSQL) – כל אחד ארוז כ-container
+    נפרד, נפרס כ-Deployment עצמאי ב-Kubernetes, וניתן לעדכון ולהרחבה ללא השפעה על
+    השירותים האחרים.
+  </p>
+</div>
+
+<!-- ===================== רקע תאורטי 2 ===================== -->
+<div class="page" id="theory2">
+  <h1>DevOps – חיבור בין פיתוח לתפעול</h1>
+  <p>
+    בעבר, צוותי פיתוח תפקידם היה כתיבת קוד בלבד, בעוד צוותי תפעול התמקדו בפריסה, תחזוקה
+    וניהול שרתים. מודל זה יצר פער משמעותי בין הסביבה בה מפתחים לבין זו שבה המערכת רצה
+    בפועל.
+  </p>
+  <p>DevOps שואפת לצמצום פער זה על ידי:</p>
+  <ul>
+    <li>אוטומציה של תהליכי Build, Test ו-Deployment</li>
+    <li>שימוש בכלים לניהול קוד, ניטור ובקרת תצורה</li>
+    <li>יצירת Pipeline אחיד משלב כתיבת הקוד ועד ההפעלה בסביבת הענן</li>
+    <li>שיתוף פעולה ותקשורת זמינה בין הצוותים</li>
+  </ul>
+  <p>התוצאה: שחרור גרסאות מהיר יותר, אמין יותר ומבוקר יותר.</p>
+
+  <div class="diagram">
+   Dev  ──►  Plan ──► Code ──► Build ──► Test ──► Release
+    ▲                                                │
+    │                                                ▼
+   Monitor ◄── Operate ◄── Deploy ◄──────────────── Ops
+  </div>
+</div>
+
+<!-- ===================== רקע תאורטי 3 ===================== -->
+<div class="page" id="theory3">
+  <h1>CI/CD – אינטגרציה ופריסה רציפה</h1>
+  <p>
+    תהליך <b>Continuous Integration (CI)</b> מבטיח שכל שינוי קוד עובר בדיקות אוטומטיות טרם
+    שילובו בענף הראשי.
+  </p>
+  <p>
+    תהליך <b>Continuous Deployment/Delivery (CD)</b> דואג לפריסה אוטומטית של הקוד לסביבה
+    התפעולית, ללא צורך בהתערבות ידנית.
+  </p>
+  <p>בפרויקט Expense Tracker:</p>
+  <ul>
+    <li>CI בוצע באמצעות GitHub Actions – lint (ruff), בדיקות (pytest) ובנייה (Docker build)</li>
+    <li>CD בוצע באמצעות ArgoCD בשיטת GitOps</li>
+    <li>פריסת הסביבה נעשתה באמצעות Kubernetes + Helm על גבי EKS</li>
+    <li>התשתית נבנתה כולה באמצעות (IaC) Terraform</li>
+    <li>אימות מול AWS בוצע ללא מפתחות סטטיים – באמצעות GitHub OIDC ותפקיד IAM ייעודי</li>
+  </ul>
+  <div class="callout">
+    בחירה מרכזית בפרויקט הייתה שימוש ב-OIDC (OpenID Connect) לצורך אימות GitHub Actions
+    מול AWS, במקום שמירת מפתחות גישה סטטיים כ-Secrets. גישה זו מפחיתה משמעותית את
+    שטח התקיפה, שכן אין כלל אישורים קבועים שניתן לגנוב או לדלוף.
+  </div>
+</div>
+
+<!-- ===================== מטרות ===================== -->
+<div class="page" id="goals">
+  <h1>מטרות הפרויקט</h1>
+  <p>
+    הפרויקט שואף ליצור סביבה מודרנית המיישמת את מיטב השיטות הנהוגות בתעשיית התוכנה
+    כיום.
+  </p>
+  <table>
+    <tr><th>יעד</th><th>הסבר</th></tr>
+    <tr><td>מודולריות</td><td>פיצול האפליקציה לשירותים עצמאיים הניתנים להרחבה</td></tr>
+    <tr><td>אמינות גבוהה</td><td>שימוש במנגנוני החלמה (liveness/readiness), רפליקציות וניטור</td></tr>
+    <tr><td>פריסה אוטומטית</td><td>הפחתת עבודת יד אנושית ומניעת טעויות באמצעות GitOps</td></tr>
+    <tr><td>ניהול עלויות</td><td>תשתית זמנית (ephemeral) הניתנת לעלייה ולהריסה יומיומית</td></tr>
+    <tr><td>אבטחת מידע</td><td>הרשאות מצומצמות (least privilege), הצפנה והפרדת סודות מהקוד</td></tr>
+    <tr><td>שקיפות ותיעוד</td><td>כל התשתית מוגדרת כקוד, מתועדת ונשלטת ב-Git</td></tr>
+  </table>
+
+  <h2>קצת על הפרויקט (Expense Tracker)</h2>
+  <ul>
+    <li>אתר לניהול הוצאות והכנסות אישיות, כולל הוספה, עריכה וסיכום נתונים כספיים</li>
+    <li>אימות משתמשים מאובטח באמצעות JWT</li>
+    <li>הפרויקט כולו נבנה בארכיטקטורת CI/CD כך שכל שינוי בקוד מתעדכן באופן אוטומטי בסביבת הענן</li>
+    <li>אתר חי בכתובת ציבורית עם תעודת TLS תקפה, המחודשת אוטומטית באמצעות Let's Encrypt</li>
+  </ul>
+</div>
+
+<!-- ===================== ארכיטקטורה ===================== -->
+<div class="page" id="arch">
+  <h1>ארכיטקטורת המערכת הכללית (Microservices)</h1>
+  <p>האתר מורכב באמצעות Docker, בארכיטקטורת Microservices.</p>
+  <ul>
+    <li>המערכת מבוססת על חלוקה לשירותים עצמאיים, שכל אחד אחראי על תחום לוגי מסוים,
+      כגון הצגת הממשק, ניהול לוגיקה עסקית או אחסון נתונים. גישה זו מאפשרת פיתוח
+      ותחזוקה יעילים לאורך זמן.</li>
+    <li>כל שירות ניתן לפריסה, הרחבה או החלפה באופן עצמאי, ללא תלות בשירותים אחרים.
+      תכונה זו מייצרת גמישות גבוהה ומאפשרת תגובה לצרכים עסקיים משתנים.</li>
+  </ul>
+
+  <div class="diagram">
+GitHub Repositories
+├── Expense-Tracker-CI    (קוד האפליקציה + Helm charts + GitHub Actions)
+│   ├── backend/           FastAPI + tests
+│   ├── frontend/          React + Vite (nginx)
+│   ├── charts/backend     Deployment, Service, Ingress, ServiceMonitor, seed Job
+│   ├── charts/frontend    Deployment, Service, Ingress
+│   ├── charts/db          עטיפה סביב Bitnami postgresql chart
+│   └── .github/workflows  ci.yml, deploy-staging.yml, deploy-production.yml
+│
+└── Expense-Tracker-CD     (תשתית + GitOps)
+    ├── bootstrap/          S3 state bucket, DynamoDB lock table, Route53 zone
+    ├── modules/platform/   VPC, EKS, ECR, IAM OIDC role, EBS CSI
+    ├── envs/dev/           קורא ל-modules/platform, מתקין את כל תוספי ה-Helm
+    └── gitops/dev/         ArgoCD Application manifests + values לכל שירות
+  </div>
+
+  <p>
+    חלוקה זו לשני ריפוזיטוריים נפרדים (קוד מול תשתית) מייצרת הפרדה ברורה בין שכבת הפיתוח
+    לשכבת התפעול, מאפשרת עבודה מקבילה של הצוות, וניהול הרשאות נפרד לכל ריפוזיטורי.
+  </p>
+</div>
+
+<!-- ===================== Frontend ===================== -->
+<div class="page" id="frontend">
+  <h1>שכבת ה-Frontend</h1>
+  <p>
+    שכבת ה-Frontend נבנתה באמצעות React ו-Vite ככלי הבנייה (build tool), ומוגשת בסביבת
+    הייצור על גבי קונטיינר nginx.
+  </p>
+  <ul>
+    <li><b>NGINX</b> הוא שרת אינטרנט (web server) חזק ומהיר המשמש גם כ-reverse proxy
+      ו-load balancer. הקונטיינר אחראי על הגשת קבצים סטטיים, יצירת חוויית המשתמש, והפניית
+      בקשות API אל שכבת ה-Backend.</li>
+    <li>התקשורת מול השרת מבוססת על קריאות API מאובטחות תחת נתיב <code>/api</code>.</li>
+  </ul>
+  <p>הקובץ Dockerfile של הפרונטנד בנוי בשיטת Multi-stage build:</p>
+  <ol>
+    <li>שלב ראשון (builder) – מבוסס node, מתקין תלויות ומריץ <code>npm run build</code></li>
+    <li>שלב שני (production) – מבוסס <code>nginx:alpine</code>, מעתיק את תוצרי הבנייה בלבד</li>
+  </ol>
+  <p>
+    גישה זו מייצרת image סופי קטן במיוחד, שכן הוא אינו כולל את כלי הבנייה, node_modules
+    או קוד המקור – רק את הקבצים הסטטיים הדרושים להרצה.
+  </p>
+</div>
+
+<!-- ===================== Backend ===================== -->
+<div class="page" id="backend">
+  <h1>שכבת ה-Backend</h1>
+  <p>
+    הבקאנד בנוי על גבי FastAPI (Python) – פריימוורק מודרני, מהיר וקל־משקל לבניית ממשקי
+    API, המנהל את כל הלוגיקה העסקית של ניהול ההוצאות וההכנסות, כולל אימות משתמשים
+    מבוסס JWT וכתיבה/קריאה ממסד הנתונים.
+  </p>
+  <p>קובץ ה-Docker Compose המשמש לפיתוח מקומי ממחיש את שלושת השירותים ואת האופן שבו הם מתקשרים:</p>
+  <pre>services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: expenses
+      POSTGRES_PASSWORD: expenses   # local dev only - never use this in the cloud
+      POSTGRES_DB: expenses
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U expenses"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://expenses:expenses@db:5432/expenses
+      JWT_SECRET_KEY: local-dev-secret-change-before-going-to-production
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_BACKEND_URL: /api
+    environment:
+      BACKEND_URL: http://backend:8000
+    ports:
+      - "8501:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:</pre>
+  <p>
+    לצורך בדיקות איכות קוד, נעשה שימוש ב-<b>ruff</b> (linting מהיר לפייתון) וב-<b>pytest</b>
+    לבדיקות יחידה. בנוסף, שולב <code>prometheus-fastapi-instrumentator</code> המאפשר
+    חשיפת מדדי ביצועים ישירות מהאפליקציה עבור Prometheus.
+  </p>
+</div>
+
+<!-- ===================== Docker ===================== -->
+<div class="page" id="docker">
+  <h1>קונטיינריזציה באמצעות Docker ו-ECR</h1>
+  <h2>Docker – אריזת שירותים ליחידות הרצה עקביות</h2>
+  <ul>
+    <li>Docker מאפשר לארוז כל שירות ליחידת הרצה עצמאית הכוללת את התלויות הדרושות לו.
+      כך ניתן להבטיח שהשירות יתנהג באופן זהה בכל סביבה — פיתוח, בדיקות וייצור.</li>
+    <li>הפרדה זו מאפשרת שחזור מהיר, פריסה אחידה ופתרון קל לתקלות שנובעות מהבדלים בסביבה.</li>
+  </ul>
+
+  <h2>ECR – מאגר Images מנוהל</h2>
+  <ul>
+    <li>כל ה-Images שנבנים בתהליך ה-CI מאוחסנים ב-ECR (Amazon Elastic Container Registry)
+      של AWS, המבטיח אבטחת גישה, שליטה בגרסאות ויעילות בשרשרת הפריסה.</li>
+    <li>המאגר מאפשר ניהול מרכזי מסודר והפחתת סיכונים כתוצאה מהחזקת גרסאות מפוזרות.</li>
+    <li>המאגר מספק נקודת משיכת תמונות דוקר ל-EKS – צמתי ה-worker מושכים את התמונה
+      ישירות באמצעות תפקיד IAM המחובר לצומת, ללא צורך באישורים נוספים.</li>
+  </ul>
+  <div class="diagram">
+Dockerfile ──► docker build ──► Docker Image ──► docker push ──► ECR ──► EKS pulls image
+  </div>
+</div>
+
+<!-- ===================== K8s ===================== -->
+<div class="page" id="k8s">
+  <h1>תזמור השירותים באמצעות Kubernetes</h1>
+  <h2>Kubernetes – מערכת התזמור</h2>
+  <ul>
+    <li>Kubernetes מנהלת את הקונטיינרים על ידי הרצה מאוזנת, החלמה אוטומטית (Self-Healing),
+      עדכונים הדרגתיים (Rolling Updates) ויכולת ביצוע Scale דינמי בהתאם לעומס בפועל.</li>
+    <li>המערכת נשארת זמינה, יציבה ובעלת יכולת התאוששות גם מול תקלות בלתי צפויות.</li>
+  </ul>
+
+  <h2>רכיבי Kubernetes בשימוש בפרויקט</h2>
+  <table>
+    <tr><th>רכיב</th><th>שימוש בפרויקט</th></tr>
+    <tr><td>Deployment</td><td>ניהול הרצת ה-pods של ה-Backend וה-Frontend, כולל rolling update</td></tr>
+    <tr><td>Service</td><td>חשיפה פנימית של כל שירות בתוך האשכול (ClusterIP)</td></tr>
+    <tr><td>Ingress</td><td>ניתוב תעבורת HTTP/HTTPS חיצונית לשירותים הפנימיים</td></tr>
+    <tr><td>Job</td><td>הרצה חד-פעמית של seed job להזרעת נתוני בסיס למסד הנתונים</td></tr>
+    <tr><td>StatefulSet</td><td>מסד הנתונים PostgreSQL (באמצעות ה-chart של Bitnami) רץ כ-StatefulSet לצורך זהות ואחסון עקבי</td></tr>
+    <tr><td>Secrets</td><td>אחסון מפתח ה-JWT ופרטי חיבור רגישים</td></tr>
+    <tr><td>ServiceMonitor</td><td>מגדיר ל-Prometheus Operator אילו שירותים לנטר</td></tr>
+  </table>
+
+  <p>הקלאסטר עצמו הוא <b>Amazon EKS</b> (Elastic Kubernetes Service) – שירות Kubernetes מנוהל של AWS, הפרוס על גבי VPC ייעודי בשתי רשתות משנה פרטיות.</p>
+</div>
+
+<!-- ===================== Helm ===================== -->
+<div class="page" id="helm">
+  <h1>Helm – package manager for k8s</h1>
+  <p>
+    Helm הוא כלי לניהול חבילות עבור Kubernetes, שנועד לפשט את תהליך הפריסה והניהול
+    של יישומים מורכבים. הכלי עושה שימוש במבנים הנקראים Charts, המכילים את כל קבצי
+    ההגדרות הדרושים להפעלת היישום, ובכך מספק דרך מאורגנת, אחידה וגמישה לניהול סביבת
+    Kubernetes.
+  </p>
+  <p>בפרויקט נוצרו שלושה Charts, אחד לכל שירות: <code>backend</code>, <code>frontend</code> ו-<code>db</code>. כל אחד מגדיר Deployment, Service, Ingress (במידת הצורך) ואת דרישות המשאבים שלו.</p>
+  <p>דוגמה אמיתית מקובץ <code>charts/backend/values.yaml</code>:</p>
+  <pre>resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+# Extra environment variables for the backend container (e.g. DATABASE_URL).
+# Do NOT put secrets here - this ends up in the Helm release values/history in
+# plain text. Use envSecretName below for anything sensitive.
+env: {}</pre>
+  <p>
+    הגדרת requests ו-limits לכל שירות מבטיחה שלא ייווצר מצב בו pod יחיד "בולע" את כל
+    משאבי הצומת (node) ומקריס שירותים אחרים - עיקרון מרכזי בסביבת ריצה משותפת.
+  </p>
+  <h2>יתרונות Helm בפרויקט</h2>
+  <ul>
+    <li>אחידות בפריסות בין סביבות (dev, staging, production)</li>
+    <li>קובץ values.yaml נפרד לכל סביבה, ללא שינוי במבנה הכללי של הקוד</li>
+    <li>יכולת rollback מהירה במקרה של תקלה</li>
+    <li>שילוב עם ArgoCD, כך שכל שינוי ב-values מסתנכרן אוטומטית לאשכול</li>
+  </ul>
+</div>
+
+<!-- ===================== IaC ===================== -->
+<div class="page" id="iac">
+  <h1>ניהול תשתיות (Infrastructure as Code) באמצעות Terraform</h1>
+  <p>
+    אחד מהעקרונות המרכזיים של הפרויקט היה ניהול תשתיות הענן בצורה עקבית, ניתנת לשחזור
+    ובעלת רמת בקרה גבוהה. Terraform מאפשר להגדיר את התשתיות בצורה הצהרתית: במקום
+    להגדיר פעולות, מגדירים את התוצאה הרצויה, והכלי דואג לבצע את השלבים הדרושים.
+  </p>
+  <h2>מבנה דו-שכבתי: bootstrap מול envs/dev</h2>
+  <p>
+    התשתית חולקה לשתי שכבות נפרדות בריפוזיטורי <code>Expense-Tracker-CD</code>:
+  </p>
+  <ul>
+    <li><b>bootstrap</b> – שכבה קבועה, המכילה את כל מה שצריך לשרוד הריסה (destroy) של הסביבה:
+      דלי S3 לאחסון ה-state, טבלת DynamoDB לנעילת state, ו-Hosted Zone ב-Route53.</li>
+    <li><b>envs/dev</b> – שכבה זמנית (ephemeral), הכוללת את האשכול עצמו, כל תוספי ה-Helm,
+      וסודות האפליקציה. שכבה זו נהרסת ונבנית מחדש בכל מחזור עבודה.</li>
+  </ul>
+  <div class="diagram">
+terraform output (bootstrap)
+────────────────────────────
+bucket         = "expense-tracker-tfstate-&lt;account-id&gt;"
+key            = "envs/dev/terraform.tfstate"
+region         = "eu-central-1"
+dynamodb_table = "expense-tracker-tf-locks"
+encrypt        = true
+  </div>
+  <h2>שימוש במודולים קיימים</h2>
+  <p>
+    בהתאם לעיקרון של הימנעות מכתיבת קוד מיותר, נעשה שימוש במודולי Terraform רשמיים
+    ומתוחזקים מהקהילה, ולא בכתיבה מאפס:
+  </p>
+  <ul>
+    <li><code>terraform-aws-modules/vpc/aws</code> – בניית ה-VPC, רשתות משנה ציבוריות ופרטיות, NAT Gateway</li>
+    <li><code>terraform-aws-modules/eks/aws</code> – הקמת אשכול EKS מלא כולל צמתי worker</li>
+    <li><code>terraform-aws-modules/iam//modules/iam-role-for-service-accounts-eks</code> – יצירת תפקידי IAM עבור Service Accounts (IRSA), למשל עבור ExternalDNS</li>
+  </ul>
+  <h2>יתרונות הבחירה ב-Terraform</h2>
+  <ol>
+    <li><b>שחזור סביבה מלא</b> — כל התשתיות ניתנות להקמה מלאה מחדש מתוך הקוד בלבד</li>
+    <li><b>שליטה בגרסאות</b> — כל שינוי בתשתית מתועד בקבצי Git, כולל היסטוריה מלאה</li>
+    <li><b>מניעת טעויות ידניות</b> — אין צורך להקים משאבים באמצעות ממשק הענן</li>
+    <li><b>יכולת הרחבה</b> — הוספת שירותים חדשים לסביבה נעשית בצורה מסודרת ושקופה</li>
+  </ol>
+</div>
+
+<!-- ===================== Networking ===================== -->
+<div class="page" id="network">
+  <h1>רשת (Networking) – VPC, Ingress, DNS ו-TLS</h1>
+  <h2>VPC ורשתות משנה</h2>
+  <p>
+    האשכול פרוס בתוך VPC ייעודי, עם רשתות משנה ציבוריות (public subnets) לרכיבים החשופים
+    לאינטרנט (כגון ה-Load Balancer), ורשתות משנה פרטיות (private subnets) לצמתי ה-EKS
+    עצמם, כך שהם אינם נגישים ישירות מהאינטרנט.
+  </p>
+  <div class="diagram">
+Internet ──► Internet Gateway
+                 │
+          ┌──────┴───────┐
+     Public Subnet   Public Subnet
+     (NAT Gateway)    (NAT Gateway)
+          │                │
+     Private Subnet   Private Subnet
+     (EKS Node)        (EKS Node)
+  </div>
+
+  <h2>Ingress Controller</h2>
+  <ul>
+    <li>ingress-nginx מותקן כתוסף Helm ומנהל את נתיבי התעבורה למיקרו-שירותים בתוך הקלאסטר.</li>
+    <li>מאפשר הפניית בקשות ל-Frontend ול-Backend על פי חוקים (host/path), ללא שינוי בקוד השירות.</li>
+    <li>משפר אבטחה בכך שאינו חושף שירותים פנימיים ישירות החוצה.</li>
+  </ul>
+
+  <h2>DNS אוטומטי – ExternalDNS</h2>
+  <p>
+    ExternalDNS עוקב אחר משאבי Ingress באשכול, וכותב רשומות DNS מתאימות ישירות אל
+    ה-Hosted Zone ב-Route53, ללא צורך בעדכון ידני. תפקיד ה-IAM שלו מוגבל (IRSA) ל-Zone
+    הספציפי בלבד – עיקרון least privilege.
+  </p>
+
+  <h2>TLS אוטומטי – cert-manager</h2>
+  <p>
+    cert-manager מנפיק אוטומטית תעודות TLS מ-Let's Encrypt באמצעות אתגר HTTP-01
+    המתבצע דרך ה-Ingress Controller עצמו, כך שכל כתובת מקבלת תעודה תקפה ללא כל פעולה
+    ידנית וללא צורך בהרשאות DNS נוספות.
+  </p>
+</div>
+
+<!-- ===================== GitOps ===================== -->
+<div class="page" id="gitops">
+  <h1>GitOps ו-ArgoCD — פריסה מבוססת אמת אחת</h1>
+  <p>
+    בפרויקט הוטמעה מתודולוגיית GitOps, בה ה-Git משמש כמקור האמת היחיד לכל מצב
+    המערכת. כל שינוי בפריסה, בקונפיגורציה או בגרסת האפליקציה חייב להיות משוקף ב-Git,
+    ומשם הוא מתגלגל אל סביבת הענן.
+  </p>
+  <h2>תבנית "App of Apps"</h2>
+  <p>
+    בפרויקט מוגדרת Application אחת מרכזית ("root") הצופה בתיקיית <code>gitops/dev</code>
+    בריפוזיטורי ה-CD. Application זו, בתורה, אחראית ליצור ולנהל שלוש Applications בנות:
+    אחת לכל שירות (backend, frontend, db). כל Application-בת שואבת את ה-Helm chart
+    שלה מריפוזיטורי ה-CI, ואת קובץ ה-values שלה מריפוזיטורי ה-CD.
+  </p>
+  <div class="diagram">
+Expense-Tracker-CD/gitops/dev/
+├── backend-app.yaml
+├── frontend-app.yaml
+├── db-app.yaml
+├── values-backend.yaml   ◄── מתעדכן אוטומטית ע"י GitHub Actions
+└── values-frontend.yaml  ◄── מתעדכן אוטומטית ע"י GitHub Actions
+  </div>
+  <p>מדיניות הסנכרון מוגדרת כאוטומטית:</p>
+  <pre>syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true</pre>
+  <ul>
+    <li><b>prune</b> – מסירה מהאשכול משאבים שהוסרו מ-Git</li>
+    <li><b>selfHeal</b> – מחזירה שינוי ידני שנעשה ישירות באשכול בחזרה למצב המוגדר ב-Git</li>
+  </ul>
+  <p>
+    כך מובטחת עקביות מלאה בין הקוד לבין מצב האשכול בפועל, שקיפות תפעולית מלאה,
+    והפחתה דרמטית בטעויות אדם.
+  </p>
+</div>
+
+<!-- ===================== CI/CD ===================== -->
+<div class="page" id="cicd">
+  <h1>CI/CD – מתודולוגיית GitHub Actions</h1>
+  <p>
+    זרימת העבודה בפרויקט מבוססת על <b>GitHub Flow</b>: מפתח פותח ענף feature, לאחר שינוי
+    ובדיקות מוצלחות נפתח Pull Request, ולאחר מיזוג לענף ה-master מתבצעת פריסה אוטומטית
+    לסביבת ה-staging. תיוג גרסה (tag בפורמט <code>v*.*.*</code>) מפעיל פריסה לסביבת הייצור.
+  </p>
+  <h2>שרשרת ה-Workflows</h2>
+  <table>
+    <tr><th>קובץ</th><th>טריגר</th><th>פעולה</th></tr>
+    <tr><td><code>ci.yml</code></td><td>Pull Request לענף master</td><td>lint (ruff) + test (pytest) + build (docker)</td></tr>
+    <tr><td><code>deploy-staging.yml</code></td><td>push לענף master</td><td>בונה ודוחפת images ל-ECR, מעדכנת values ב-CD repo, ArgoCD מסנכרן</td></tr>
+    <tr><td><code>deploy-production.yml</code></td><td>push של tag בפורמט <code>v*.*.*</code></td><td>אותו תהליך, עם תיוג הגרסה הספציפית</td></tr>
+  </table>
+  <p>קטע מתוך workflow הבדיקה המשותפת (<code>_reusable-ci.yml</code>):</p>
+  <pre>jobs:
+  lint:
+    steps:
+      - run: ruff check backend frontend
+
+  test:
+    steps:
+      - run: pip install -r backend/requirements.txt
+      - working-directory: backend
+        run: pytest -v
+
+  build:
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    steps:
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service }}
+          push: false</pre>
+  <h2>אימות מול AWS ללא מפתחות סטטיים</h2>
+  <p>
+    ה-workflow משתמש ב-<code>aws-actions/configure-aws-credentials</code> עם
+    <code>role-to-assume</code>, המבוסס על OIDC. כלומר, GitHub Actions "מתחזה" זמנית
+    לתפקיד IAM ייעודי לפעולת ה-deploy, ללא צורך לאחסן Access Key ו-Secret Key קבועים
+    כ-Secrets בריפוזיטורי.
+  </p>
+  <h2>עדכון אוטומטי של ריפוזיטורי ה-GitOps</h2>
+  <p>
+    לאחר בניית התמונה ודחיפתה ל-ECR, ה-workflow מבצע checkout לריפוזיטורי ה-CD, מעדכן
+    את תגית התמונה בקובץ ה-values המתאים, ומבצע commit ו-push חזרה. ArgoCD מזהה את
+    השינוי תוך דקות ומבצע את הפריסה בפועל.
+  </p>
+  <h2>התראות</h2>
+  <p>
+    בסיום כל ריצה (הצלחה או כישלון) נשלחת הודעה אוטומטית לערוץ Slack ייעודי, הכוללת קישור
+    ישיר להרצה ב-GitHub Actions.
+  </p>
+</div>
+
+<!-- ===================== Monitoring ===================== -->
+<div class="page" id="monitoring">
+  <h1>ניטור – Prometheus, Grafana ו-Loki</h1>
+  <h2>Prometheus</h2>
+  <p>
+    Prometheus הוא כלי קוד פתוח לניטור ואיסוף מדדים בזמן אמת, המבוסס על מנגנון
+    Pull-Based, שבו השרת שולף נתונים מ-Exporters ומאחסן אותם כמערכי Time-Series.
+    בפרויקט, Prometheus הותקן באמצעות ה-chart <code>kube-prometheus-stack</code>
+    כתוסף Terraform, ואוסף מדדים על עומסים, זמינות שירותים וצריכת משאבים בקלאסטר.
+  </p>
+  <h2>Grafana</h2>
+  <p>
+    Grafana מספקת שכבת תצוגה ויזואלית לנתוני Prometheus, ומאפשרת בניית לוחות בקרה
+    הכוללים גרפים, טבלאות והתראות (Alerts).
+  </p>
+  <h2>Alertmanager והתראות Slack</h2>
+  <p>
+    Alertmanager מוגדר לנתב כל התראה ברמת warning ומעלה לערוץ Slack ייעודי, כולל
+    Pod crash-loop וכל תקלה אחרת שקיימת עבורה כלל ברירת מחדל ב-kube-prometheus-stack.
+  </p>
+
+  <h2>Loki + Grafana Alloy – ריכוז לוגים</h2>
+  <p>
+    בנוסף למדדים (metrics), נדרש פתרון לריכוז לוגים (logs) ממערכת הקונטיינרים. בפרויקט
+    נבחר <b>Grafana Loki</b> במצב Monolithic (single-binary), יחד עם <b>Grafana Alloy</b>
+    כסוכן איסוף הלוגים מכל pod באשכול (מחליף את Promtail, שהופסקה תחזוקתו).
+    Loki מוגדר כמקור נתונים (datasource) נוסף באותה Grafana הקיימת, כך שמדדים ולוגים
+    נצפים באותו ממשק בדיוק:
+  </p>
+  <pre>grafana:
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki.monitoring.svc.cluster.local:3100</pre>
+  <p>
+    שילוב זה נבחר במקום מחסנית Elasticsearch/Kibana המסורתית, מאחר שהוא קל-משקל
+    יותר (single pod, ללא PVC), ואינו דורש רכיבי ניהול נוספים - התאמה טובה לסביבת ריצה
+    זמנית (ephemeral) שנהרסת ונבנית מדי יום.
+  </p>
+</div>
+
+<!-- ===================== Security ===================== -->
+<div class="page" id="security">
+  <h1>אבטחת מידע</h1>
+  <h2>ניהול סודות</h2>
+  <ul>
+    <li>מפתח ה-JWT נוצר אוטומטית באמצעות <code>random_password</code> ב-Terraform, ונשמר כ-Kubernetes Secret - הוא אינו מופיע בשום שלב בקוד או בקובץ values גלוי.</li>
+    <li>קבצי <code>terraform.tfvars</code> ו-<code>backend.hcl</code>, המכילים פרטי סביבה רגישים, מוגדרים ב-<code>.gitignore</code> ואינם מגיעים לריפוזיטורי כלל.</li>
+    <li>Webhook כתובת ה-Slack מוזרמת כ-Secret נפרד ל-Alertmanager, ולא כערך גלוי בקובץ values.</li>
+  </ul>
+  <h2>הרשאות מצומצמות (Least Privilege)</h2>
+  <p>
+    לצורך הרצת Terraform (בין אם ע"י מפתח אנושי ובין אם דרך GitHub Actions), הוגדרה
+    מדיניות IAM מותאמת אישית וממוקדת - ולא הרשאת <code>AdministratorAccess</code> גורפת.
+    המדיניות כוללת הרשאות נפרדות וממוקדות עבור: EC2/VPC, EKS, ECR, ELB, IAM (מוגבל
+    לפעולות הדרושות בלבד), S3 (מוגבל לדליים בעלי קידומת <code>expense-tracker-*</code>),
+    DynamoDB (מוגבל לטבלת ה-locks), KMS, CloudWatch/Logs, ו-Route53 (הרשאות קריאה
+    בלבד, לצורך שאילתת ה-Hosted Zone הקיים).
+  </p>
+  <h2>הצפנה</h2>
+  <ul>
+    <li>כל התעבורה החיצונית מוצפנת ב-HTTPS/TLS, באמצעות תעודות Let's Encrypt המתחדשות אוטומטית.</li>
+    <li>דלי ה-S3 המשמש לאחסון state מוגדר עם הצפנה (Server-Side Encryption) ומניעת גישה ציבורית.</li>
+  </ul>
+  <h2>בדיקות אוטומטיות כשכבת הגנה</h2>
+  <p>
+    כל שינוי קוד עובר lint ובדיקות יחידה לפני שהוא יכול להתמזג לענף הראשי, מה שמונע
+    הגעת קוד פגום או לא בטוח לסביבת הענן.
+  </p>
+</div>
+
+<!-- ===================== Cost ===================== -->
+<div class="page" id="cost">
+  <h1>ניהול עלויות תשתית ענן</h1>
+  <p>
+    שיקול מרכזי בתכנון הפרויקט היה עלות ההרצה, מאחר שמדובר בסביבת לימוד ולא בסביבת
+    ייצור מסחרית. אשכול EKS, למשל, גובה עלות שעתית עבור ה-control plane בלבד, ללא
+    תלות בשימוש בפועל.
+  </p>
+  <h2>עיצוב "Ephemeral" של הסביבה</h2>
+  <p>
+    לצורך כך, אומץ עיקרון של תשתית זמנית: הסביבה מוקמת מחדש בכל תחילת עבודה
+    (<code>terraform apply</code>) ונהרסת בסיומה (<code>terraform destroy</code>), כך שהעלות
+    נגבית רק בזמן שהסביבה אכן פעילה בפועל.
+  </p>
+  <table>
+    <tr><th>מצב</th><th>עלות מוערכת</th><th>מה נשאר פעיל</th></tr>
+    <tr><td>סביבה פעילה (running)</td><td>~5$ ליום</td><td>EKS control plane, NAT Gateway, worker node אחד, Load Balancer</td></tr>
+    <tr><td>סביבה מושמדת (destroyed)</td><td>~0.5$ לחודש</td><td>Hosted Zone ב-Route53 בלבד (בשכבת bootstrap)</td></tr>
+  </table>
+  <p>
+    הפרדת שכבת ה-bootstrap (הקבועה) משכבת ה-envs/dev (הזמנית) היא זו שמאפשרת מודל
+    עבודה כזה: רק המשאבים שחייבים לשרוד לאורך זמן (כתובת ה-DNS, ה-state) אינם נהרסים.
+  </p>
+</div>
+
+<!-- ===================== אתגרים ===================== -->
+<div class="page" id="challenges">
+  <h1>אתגרים ופתרונות במהלך הפיתוח</h1>
+
+  <div class="challenge"><b>אתגר:</b> ניהול בטוח של הרשאות AWS בין מספר מפתחים בצוות</div>
+  <div class="solution"><b>פתרון:</b> הגדרת מדיניות IAM מותאמת אישית וממוקדת (least privilege), הניתנת לשכפול לכל חבר צוות, במקום הענקת הרשאות מנהל גורפות.</div>
+
+  <div class="challenge"><b>אתגר:</b> מניעת עלויות מיותרות בסביבת פיתוח שאינה בשימוש מסחרי</div>
+  <div class="solution"><b>פתרון:</b> תכנון התשתית כ-ephemeral, עם הפרדת שכבה קבועה (bootstrap) משכבה זמנית (envs/dev), המאפשרת עלייה והשמדה מלאה תוך דקות.</div>
+
+  <div class="challenge"><b>אתגר:</b> העברת ניהול הדומיין הציבורי מרשם חיצוני (GoDaddy) לענן AWS</div>
+  <div class="solution"><b>פתרון:</b> הקמת Hosted Zone ב-Route53 באמצעות Terraform, ועדכון nameservers חד-פעמי אצל הרשם החיצוני להצביע על השכבה הקבועה בענן.</div>
+
+  <div class="challenge"><b>אתגר:</b> סנכרון תשתיות בענן לאורך זמן בין מספר מפתחים</div>
+  <div class="solution"><b>פתרון:</b> Version Control + Terraform עם state מרוחק (S3 + DynamoDB לנעילה) → שליטה מוחלטת ועקבית בשינויים.</div>
+
+  <div class="challenge"><b>אתגר:</b> כיסוי דרישת ניטור לוגים מרוכז מבלי להכביד על סביבה זמנית</div>
+  <div class="solution"><b>פתרון:</b> הוספת Grafana Loki + Alloy כפתרון קל-משקל, המשתלב באותה Grafana הקיימת ואינו דורש PVC נפרד.</div>
+
+  <div class="challenge"><b>אתגר:</b> ניהול ידני של פריסות עלול לגרום לתקלות ולחוסר עקביות</div>
+  <div class="solution"><b>פתרון:</b> אימוץ GitOps (ArgoCD) כמנגנון פריסה רשמי ותואם, עם Git כמקור האמת היחיד.</div>
+
+  <div class="challenge"><b>אתגר:</b> פודים נתקעו במצב Pending למרות שהיה מספיק CPU/Memory פנויים בצומת</div>
+  <div class="solution"><b>פתרון:</b> אובחן שמדובר במגבלת רשת (ENI/IP) הקבועה מראש למספר הפודים המקסימלי בכל instance type (t3.medium מוגבל ל-~17 פודים בלבד) - לא במגבלת חישוב. הפתרון היה הרחבת קבוצת ה-worker nodes לפי הצורך בפועל.</div>
+
+  <div class="challenge"><b>אתגר:</b> גרסאות עדכניות של Helm charts (כגון Loki ו-Alloy) שינו את מבנה ה-values הצפוי בין גרסה לגרסה</div>
+  <div class="solution"><b>פתרון:</b> אימות כל שינוי בעזרת <code>helm template</code> באופן מקומי לפני הרצת terraform apply בפועל, כדי לתפוס שגיאות סכמה מראש במקום לגלות אותן רק באמצע פריסה בענן.</div>
+
+  <div class="challenge"><b>אתגר:</b> תהליך סנכרון של ArgoCD נתקע לצמיתות עקב PreSync hook Job שנכשל</div>
+  <div class="solution"><b>פתרון:</b> זוהה כי הפעולה התקועה "קפואה" על ה-revision הישן ולא תתעדכן מעצמה. הפתרון היה מחיקת ה-Job התקוע ומחיקת משאב ה-Application עצמו, כך ש-"app of apps" השורשי יצר אותו מחדש בצורה נקייה מול ה-revision העדכני.</div>
+
+  <p>כל אחד מהאתגרים האלה חיזק את המערכת והגדיר את המבנה הנכון שלה.</p>
+</div>
+
+<!-- ===================== סיכום ===================== -->
+<div class="page" id="summary">
+  <h1>סיכום</h1>
+  <p>
+    Expense Tracker הוא פרויקט המייצג מודל עבודה מודרני מלא — מהקוד, דרך ניהול
+    התשתיות, ועד ל-CI/CD ו-GitOps. הפרויקט נפרס בהצלחה לסביבת AWS אמיתית, וזמין
+    בכתובת הציבורית <b>expensetracker.skin</b> עם תעודת HTTPS תקפה המתחדשת אוטומטית.
+  </p>
+  <p>
+    המוצר שהתקבל הוא מערכת יציבה, גמישה, ניתנת להרחבה ולשיפור עתידי, המבוססת על
+    כלים ושיטות הנהוגות בתעשייה - EKS, Terraform, Helm, ArgoCD, GitHub Actions,
+    Prometheus/Grafana ו-Loki.
+  </p>
+  <p>
+    ייחודו של הפרויקט לעומת מערכות דומות הוא בשילוב שבין ארכיטקטורה מקצועית מלאה לבין
+    משמעת עלויות קפדנית, המתאימה לפרויקט לימודי: התשתית ניתנת להקמה ולהריסה מלאה
+    תוך דקות, כך שהעלות נגבית רק בזמן שימוש בפועל, מבלי להתפשר על שלמות הפתרון
+    או על עקרונות ה-DevOps המיושמים בו.
+  </p>
+  <p>
+    הערך המרכזי של הפרויקט הוא היכולת לשחזר, לתחזק ולהרחיב אותו בצורה נקייה וברורה,
+    ללא תלות בידע בלתי-מתועד או בשימוש ידני בתשתית.
+  </p>
+
+  <p class="center" style="margin-top:60px; color:#888">
+    Expense Tracker | פרויקט גמר DevOps | דוד סרור ומתן פרל
+  </p>
+</div>
+
+</body>
+</html>
