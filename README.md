@@ -126,20 +126,20 @@ graph TD
 
 ### 1. One-time bootstrap
 
-The state backend and the Route 53 hosted zone live outside `envs/dev` so they survive environment teardown:
+The state backend and the Route 53 hosted zone live outside `terraform/envs/dev` so they survive environment teardown:
 
 ```bash
-cd bootstrap
+cd terraform/bootstrap
 terraform init
 terraform apply
 terraform output route53_name_servers   # set these 4 values as GoDaddy's nameservers (one-time)
-terraform output backend_config_hcl     # paste into envs/dev/backend.hcl
+terraform output backend_config_hcl     # paste into terraform/envs/dev/backend.hcl
 ```
 
 ### 2. Configure
 
 ```bash
-cd envs/dev
+cd terraform/envs/dev
 cp terraform.tfvars.example terraform.tfvars
 cp backend.hcl.example backend.hcl
 ```
@@ -149,7 +149,7 @@ Fill in `terraform.tfvars`: `github_repo`, `letsencrypt_email`, and optionally `
 ### 3. Deploy
 
 ```bash
-cd envs/dev
+cd terraform/envs/dev
 terraform init -backend-config="backend.hcl"
 
 # Stage 1: build the cluster + core add-ons
@@ -185,7 +185,7 @@ go to **Explore**, pick the **Loki** datasource, and query e.g.:
 ### 5. Tear down
 
 ```bash
-cd envs/dev
+cd terraform/envs/dev
 terraform destroy
 ```
 
@@ -204,10 +204,11 @@ The `bootstrap` layer (state bucket, lock table, Route 53 zone — ~$0.50/month)
 ## Project Structure
 
 ```text
-bootstrap/          # Persistent: S3 state bucket, DynamoDB lock table, Route 53 hosted zone
-envs/dev/            # Disposable: calls modules/platform, installs Helm add-ons, wires DNS/TLS/secrets
-modules/platform/    # Reusable module: VPC, EKS, ECR, GitHub OIDC IAM role, EBS CSI driver
-gitops/dev/          # ArgoCD Application manifests + per-env Helm values for the app
+terraform/
+├── bootstrap/         # Persistent: S3 state bucket, DynamoDB lock table, Route 53 hosted zone
+├── envs/dev/          # Disposable: calls modules/platform, installs Helm add-ons, wires DNS/TLS/secrets
+└── modules/platform/  # Reusable module: VPC, EKS, ECR, GitHub OIDC IAM role, EBS CSI driver
+gitops/dev/            # ArgoCD Application manifests + per-env Helm values for the app
 ```
 
 ## 💰 Cost
